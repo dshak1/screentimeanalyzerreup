@@ -1,54 +1,47 @@
-"""
-Screen Time Analytics Dashboard
-===============================
-
-A comprehensive data analysis tool for mobile app usage patterns.
-Analyzes screen time data to identify usage trends, notification effectiveness,
-and behavioral patterns across different applications and time periods.
-
-Author: [Your Name]
-Created: 2024
-"""
 
 import pandas as pd
+
+data = pd.read_csv("content/screentime_analysis.csv")
+
+data.head()
+
+data.describe()
+
+#######
+import sqlite3
+
+# Connect to the macOS database
+conn = sqlite3.connect('~/Library/Application Support/Knowledge/knowledgeC.db')
+
+# Query relevant app usage data
+query = """
+SELECT ZDATE AS Date, ZSTREAMNAME AS App, ZUSAGE AS `Usage (minutes)`
+FROM ZOBJECT
+WHERE ZSTREAMNAME LIKE '%AppUsage%'
+"""
+data = pd.read_sql_query(query, conn)
+conn.close()
+
+# Convert date column to datetime
+data['Date'] = pd.to_datetime(data['Date'])
+
+print(data.head())
+#########
+
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load and inspect the dataset
-print("Loading screen time data...")
-data = pd.read_csv("content/screentime_analysis.csv")
-
-print("Dataset Overview:")
-print(f"Total records: {len(data)}")
-print(f"Date range: {data['Date'].min()} to {data['Date'].max()}")
-print(f"Apps analyzed: {data['App'].nunique()}")
-print("\nFirst 5 records:")
-data.head()
-
-print("\nDataset Statistics:")
-data.describe()
-
-# Data preprocessing
 data['Date'] = pd.to_datetime(data['Date'])
-
-# ==========================================
-# ANALYSIS 1: TIME SERIES TREND ANALYSIS
-# ==========================================
-print("\n1. Generating time series trend analysis...")
 
 plt.figure(figsize=(12, 6))
 sns.lineplot(x='Date', y='Usage (minutes)', hue='App', data=data, marker="o")
-plt.title('Screen Time Trends for Different Apps', fontsize=16, fontweight='bold')
+plt.title('Screen Time Trends for Different Apps')
 plt.ylabel('Usage (minutes)')
 plt.xlabel('Date')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
-
-# ==========================================
-# ANALYSIS 2: CORRELATION MATRIX ANALYSIS
-# ==========================================
-print("\n2. Generating correlation analysis...")
 
 plt.figure(figsize=(8, 6))
 
@@ -59,29 +52,22 @@ pairplot = sns.pairplot(
     plot_kws={'alpha':0.6, 's':50}  
 )
 
-pairplot.fig.suptitle('Multi-Variable Relationship Analysis:\nUsage vs Notifications vs App Opens', 
-                      y=1.02, fontsize=14, fontweight='bold')
+pairplot.fig.suptitle('Relationships between Screen Time, Notifications, and Times Opened', y=1.02, fontsize=14)
 
 plt.tight_layout()
+
 plt.show()
 
-
-# ==========================================
-# ANALYSIS 3: APP-LEVEL STATISTICAL ANALYSIS
-# ==========================================
-print("\n3. Computing app-level statistics...")
 
 app_analysis = data.groupby('App').agg(
     avg_usage=('Usage (minutes)', 'mean'),
     avg_notifications=('Notifications', 'mean'),
-    avg_times_opened=('Times Opened', 'mean'),
-    total_usage=('Usage (minutes)', 'sum'),
-    usage_std=('Usage (minutes)', 'std')
+    avg_times_opened=('Times Opened', 'mean')
 ).reset_index()
 
 app_analysis = app_analysis.sort_values(by='avg_usage', ascending=False)
-print("App Usage Statistics (sorted by average usage):")
-print(app_analysis.round(2))
+
+app_analysis
 
 
 data['Day of Week'] = data['Date'].dt.day_name()
