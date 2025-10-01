@@ -1,9 +1,31 @@
-import pandas as pd
+"""
+Screen Time Analytics Dashboard
+===============================
 
+A comprehensive data analysis tool for mobile app usage patterns.
+Analyzes screen time data to identify usage trends, notification effectiveness,
+and behavioral patterns across different applications and time periods.
+
+Author: [Your Name]
+Created: 2024
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load and inspect the dataset
+print("Loading screen time data...")
 data = pd.read_csv("content/screentime_analysis.csv")
 
+print("Dataset Overview:")
+print(f"Total records: {len(data)}")
+print(f"Date range: {data['Date'].min()} to {data['Date'].max()}")
+print(f"Apps analyzed: {data['App'].nunique()}")
+print("\nFirst 5 records:")
 data.head()
 
+print("\nDataset Statistics:")
 data.describe()
 
 import matplotlib.pyplot as plt
